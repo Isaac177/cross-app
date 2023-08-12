@@ -1,8 +1,9 @@
-import {SafeAreaView, Text} from 'react-native';
+import {ActivityIndicator, RefreshControl, SafeAreaView, ScrollView, Text, View} from 'react-native';
 import {Stack, useRouter, useSearchParams} from "expo-router";
 import {useFetch} from "../../hook/useFetch";
-import {COLORS} from "../../constants";
+import {COLORS, icons, SIZES} from "../../constants";
 import {useState} from "react";
+import {Company, JobTabs, ScreenHeaderBtn} from "../../components";
 
 
 const JobDetails = () => {
@@ -14,11 +15,60 @@ const JobDetails = () => {
         job_id: params.id
     })
 
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await refetch();
+        setRefreshing(false);
+    }
+
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: COLORS.lightWhite }}>
-            <Stack.Screen>
-
-            </Stack.Screen>
+            <Stack.Screen
+                options={{
+                    headerStyle: { backgroundColor: COLORS.lightWhite },
+                    headerShadowVisible: false,
+                    headerBackVisible: false,
+                    headerLeft: () => (
+                        <ScreenHeaderBtn
+                            iconUrl={icons.back}
+                            dimension='60%'
+                            handlePress={() => router.back()}
+                        />
+                    ),
+                    headerRight: () => (
+                        <ScreenHeaderBtn
+                            iconUrl={icons.share}
+                            dimension='60%'
+                        />
+                    ),
+                    headerTitle: "",
+                }}
+            />
+            <>
+                <ScrollView showsHorizontalScrollIndicator={false} refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }>
+                    {
+                        isLoading ? (
+                            <ActivityIndicator size='large' color={COLORS.primary} />
+                        ) : error ? (
+                            <Text>Something went wrong</Text>
+                        ): data.length === 0 ? (
+                            <Text>No data found</Text>
+                        ) : (
+                            <View style={{flex: 1, padding: SIZES.medium, paddingBottom: 100}}>
+                                <Company
+                                    companyLogo={data[0].employer_logo}
+                                    jobTitle={data[0].job_title}
+                                    companyName={data[0].employer_name}
+                                    location={data[0].job_country}
+                                />
+                                <JobTabs />
+                            </View>
+                        )
+                    }
+                </ScrollView>
+            </>
         </SafeAreaView>
     );
 }
