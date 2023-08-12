@@ -3,11 +3,13 @@ import {Stack, useRouter, useSearchParams} from "expo-router";
 import {useFetch} from "../../hook/useFetch";
 import {COLORS, icons, SIZES} from "../../constants";
 import {useState} from "react";
-import {Company, JobTabs, ScreenHeaderBtn} from "../../components";
+import {Company, JobAbout, JobFooter, JobTabs, ScreenHeaderBtn, Specifics} from "../../components";
 
 
+const tabs = ['About', 'Qualifications', 'Responsibilities']
 const JobDetails = () => {
     const [refreshing, setRefreshing] = useState(false);
+    const [activeTab, setActiveTab] = useState(tabs[0]);
     const params = useSearchParams();
     const router = useRouter();
 
@@ -21,11 +23,34 @@ const JobDetails = () => {
         setRefreshing(false);
     }
 
+    const displayTabContent = () => {
+        switch (activeTab) {
+            case 'About':
+                return <JobAbout
+                    info={data[0].job_description ?? 'No data provided'}
+                    />
+			case 'Qualifications':
+                return (
+                    <Specifics
+                        title="Qualifications"
+                        points={data[0].job_highlights?.Qualifications ?? ['N/A']}
+                    />
+                )
+            case 'Responsibilities':
+                return <Specifics
+                    title="Responsibilities"
+                    points={data[0].job_highlights?.Responsibilities ?? ['N/A']}
+                    />
+                default:
+                    break;
+        }
+    }
+
     return (
-        <SafeAreaView style={{flex: 1, backgroundColor: COLORS.lightWhite }}>
+        <SafeAreaView style={{flex: 1, backgroundColor: COLORS.lightWhite}}>
             <Stack.Screen
                 options={{
-                    headerStyle: { backgroundColor: COLORS.lightWhite },
+                    headerStyle: {backgroundColor: COLORS.lightWhite},
                     headerShadowVisible: false,
                     headerBackVisible: false,
                     headerLeft: () => (
@@ -46,14 +71,14 @@ const JobDetails = () => {
             />
             <>
                 <ScrollView showsHorizontalScrollIndicator={false} refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
                 }>
                     {
                         isLoading ? (
-                            <ActivityIndicator size='large' color={COLORS.primary} />
+                            <ActivityIndicator size='large' color={COLORS.primary}/>
                         ) : error ? (
                             <Text>Something went wrong</Text>
-                        ): data.length === 0 ? (
+                        ) : data.length === 0 ? (
                             <Text>No data found</Text>
                         ) : (
                             <View style={{flex: 1, padding: SIZES.medium, paddingBottom: 100}}>
@@ -63,12 +88,18 @@ const JobDetails = () => {
                                     companyName={data[0].employer_name}
                                     location={data[0].job_country}
                                 />
-                                <JobTabs />
+                                <JobTabs
+                                    tabs={tabs}
+                                    activeTab={activeTab}
+                                    setActiveTab={setActiveTab}
+                                />
+                                {displayTabContent()}
                             </View>
                         )
                     }
                 </ScrollView>
-            </>
+                <JobFooter url={data[0]?.job_google_link ?? 'https://careers.google.com/jobs/results/'} />
+                </>
         </SafeAreaView>
     );
 }
