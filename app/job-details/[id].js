@@ -55,7 +55,7 @@ const JobDetails = () => {
                     headerBackVisible: false,
                     headerLeft: () => (
                         <ScreenHeaderBtn
-                            iconUrl={icons.back}
+                            iconUrl={icons.left}
                             dimension='60%'
                             handlePress={() => router.back()}
                         />
